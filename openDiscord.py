@@ -1,6 +1,7 @@
 import os
 from tkinter.filedialog import askopenfilename
 import json
+import keyboard
 
 
 def getMessage(prevFile):
