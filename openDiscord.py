@@ -5,6 +5,12 @@ import keyboard
 
 
 def getMessage(prevFile):
+    '''
+    Attempts to open a file containing a message.
+    If a previous file has been found in the json, attempt to load it first.
+    On failure, prompt user to select a new message file of .txt type.
+    If successful, return the file containing the message and the message itself.
+    '''
     if prevFile and os.path.exists(prevFile):
         print("Previous file exists. Opening....")
         msgFile = prevFile
@@ -30,6 +36,10 @@ def getMessage(prevFile):
 
 
 def openDiscord():
+    '''
+    Attempts to find the location of discord within the %localappdata% directory.
+    One success, it launches discord (or makes it the focused application).
+    '''
     startDir = os.getenv('LOCALAPPDATA') + '\\Discord\\'
     print(startDir)
     if not os.path.exists(startDir):
@@ -47,23 +57,46 @@ def openDiscord():
     os.startfile(targetDir)
 
 
+def getKeystrokes():
+    '''
+    Record keystrokes until a specified key is pressed and return them.
+    '''
+
+    #add code here
+
+    return None #replace 'None' here with the name of your keystrokes variable
+
+
 def main():
+    #dict to hold json data
     info = {}
 
+    #load json file if it exists
     if (os.path.exists(os.getcwd() + '\\discordData.json')):
         print("discordData.json exists. Loading data...")
         file = open('discordData.json')
         info = json.load(file)
 
+    #if previous file exists in json, load it into variable, else None
     prevFile = info['prevFile'] if 'prevFile' in info.keys() else None
 
+    #get the file containing the message and the message itself
     msgFile, message = getMessage(prevFile)
 
+    #save current file over previous one (in json) if it doesn't exist or if user opened a new file
     if not prevFile or prevFile != msgFile:
         info['prevFile'] = msgFile
 
+    #open the discord appliction
     openDiscord()
 
+    #get keystrokes
+    keystrokes = getKeystrokes()
+
+    #print recorded keystrokes
+    print(keystrokes)
+
+    #if json already exists, overwrite with updated information, else create new json with the information
     if os.path.exists(os.getcwd() + 'discordData.json'):
         json.dump(info, file)
     else:
