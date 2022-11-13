@@ -1,5 +1,2 @@
-json
-logging
-tkinter
+tk
 keyboard
-time
