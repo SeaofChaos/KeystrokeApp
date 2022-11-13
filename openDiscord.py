@@ -1,7 +1,10 @@
+import json
+import logging
 import os
 from tkinter.filedialog import askopenfilename
-import json
+
 import keyboard
+
 
 
 def getMessage(prevFile):
@@ -49,8 +52,7 @@ def openDiscord():
         for name in files:
             if name == "Discord.exe":
                 targetDir = os.path.abspath(os.path.join(root, name))
-                print(name)
-    
+
     if not targetDir:
         exit("Discord application not found.")
     print(targetDir)
@@ -61,11 +63,8 @@ def getKeystrokes():
     '''
     Record keystrokes until a specified key is pressed and return them.
     '''
-
-    #add code here
-
-    return None #replace 'None' here with the name of your keystrokes variable
-
+    keyStroke = keyboard.record(until='esc')
+    return keyStroke
 
 def main():
     #dict to hold json data
@@ -88,13 +87,15 @@ def main():
         info['prevFile'] = msgFile
 
     #open the discord appliction
-    openDiscord()
+    #openDiscord()
 
     #get keystrokes
     keystrokes = getKeystrokes()
-
+    stringKey = list(keystrokes)
+    print(stringKey)
+    stringKey = [str(key)[13:] for key in keystrokes]
     #print recorded keystrokes
-    print(keystrokes)
+    print(stringKey)
 
     #if json already exists, overwrite with updated information, else create new json with the information
     if os.path.exists(os.getcwd() + 'discordData.json'):
