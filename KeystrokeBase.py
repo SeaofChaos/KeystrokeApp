@@ -9,12 +9,33 @@ contentFileName = 'sessionInfo.json'
 contentJSONPath = os.getcwd() + '\\Content\\' + contentFileName
 
 
+def loadJSON(fileExists):
+    info = {}
+    #load json file if it exists
+    if fileExists:
+        #makes sure JSON file is not empty
+        if os.stat(contentJSONPath).st_size == 0:
+            print("No previous data found. Continuing without presets...")
+            fileExists = False
+            os.remove(contentJSONPath)
+        else:
+            print("Previous session data exists. Loading data...")
+            file = open(contentJSONPath)
+            try:
+                info = json.load(file)
+            except ValueError:
+                exit((f"Error loading file {os.path.basename(contentJSONPath)}."
+                    " Make sure it's in the proper format."))
+
+    return info
+
+
 def getMessage(prevFile):
     '''
     Attempts to open a file containing a message.
     If a previous file has been found in the json, attempt to load it first.
     On failure, prompt user to select a new message file of .txt type.
-    If successful, return the file containing the message and the message itself.
+    If successful, return the file path and the message.
     '''
     #attempt to load file if stored in JSON
     if prevFile and os.path.exists(prevFile):
@@ -27,7 +48,7 @@ def getMessage(prevFile):
         #make sure user selects a valid file
         try:
             msgFile = askopenfilename()
-        except:
+        except ValueError:
             exit("Error opening file. Please select a valid text file.")
     
     #if file is not .txt, exit
@@ -36,19 +57,18 @@ def getMessage(prevFile):
 
     #open file
     try:
-        file = open(msgFile, "r")
-    except:
+        with open(msgFile) as file:
+            #read in entire file
+            message = file.read()
+    except ValueError:
         exit("Error opening file.")
-
-    #read in entire file
-    message = file.read()
     
     return msgFile, message
 
 
 def openDiscord():
     '''
-    Attempts to find the location of discord within the %localappdata% directory.
+    Attempts to find location of discord within the %localappdata% directory.
     One success, it launches discord (or makes it the focused application).
     '''
     #try to locate discord
@@ -77,7 +97,7 @@ def getKeystrokes(secBeforeRec):
     '''
     #countdown must be greater than 0 and 2 digits long
     if secBeforeRec > 99 or secBeforeRec < 0:
-        exit("Invalid countdown. Please set keystroke countdown between 0 and 100.")
+        exit("Invalid countdown. Set keystroke countdown between 0 and 100.")
 
     #countdown
     for i in range(secBeforeRec+1):
@@ -89,10 +109,16 @@ def getKeystrokes(secBeforeRec):
     print("Press the Escape key to stop recording")
 
     #get keystrokes
-    keyStroke = keyboard.record(until='esc')
+    keystrokes = keyboard.record(until='esc')
     print("Finish")
 
-    return keyStroke
+    #print recorded keystrokes
+    stringKey = list(keystrokes)
+    #print(stringKey)
+    stringKey = [str(key)[13:] for key in keystrokes]
+    print("Inputted keystrokes: ", stringKey)
+
+    return keystrokes
 
 
 def main():
@@ -100,26 +126,10 @@ def main():
     #Label(mainWindow, text='Hello World').pack()
     #mainWindow.mainloop()
 
-    #dict to hold json data
-    info = {}
-
     fileExists = os.path.exists(contentJSONPath)
 
-    #load json file if it exists
-    if fileExists:
-        #makes sure JSON file is not empty
-        if os.stat(contentJSONPath).st_size == 0:
-            print("No previous data found. Continuing without presets...")
-            fileExists = False
-            os.remove(contentJSONPath)
-        else:
-            print("Previous session data exists. Loading data...")
-            file = open(contentJSONPath)
-            try:
-                info = json.load(file)
-            except:
-                exit("Error loading file " + os.path.basename(contentJSONPath) + 
-                        ". Make sure it's in the proper format.")
+    #dict to hold json data
+    info = loadJSON(fileExists)
 
     #if previous file exists in json, load it into variable, else None
     prevFile = info['prevFile'] if 'prevFile' in info.keys() else None
@@ -127,7 +137,7 @@ def main():
     #get the file containing the message and the message itself
     try:
         msgFile, message = getMessage(prevFile)
-    except:
+    except ValueError:
         exit("Failed to load message. Make sure the .txt file contains valid characters.")
 
     print("Message: \n", message)
@@ -140,13 +150,7 @@ def main():
     #openDiscord()
 
     #get keystrokes
-    keystrokes = getKeystrokes(5)
-
-    #print recorded keystrokes
-    stringKey = list(keystrokes)
-    #print(stringKey)
-    stringKey = [str(key)[13:] for key in keystrokes]
-    print("Inputted keystrokes: ", stringKey)
+    keystrokes = getKeystrokes(3)
 
     #overwrite json with new information
     with open(contentJSONPath, 'w') as f:
