@@ -1,2 +1,4 @@
-
-discordData.json
+Content/
+venv/
+dist/
+build/
